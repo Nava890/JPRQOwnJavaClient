@@ -1,10 +1,13 @@
 package Server.Tunnels;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
-public class HttpTunnels {
+public class HttpTunnels{
     Tunnel tunnel;
-    public HttpTunnels newHttp(String hostName, InputStream writer, int maxConsLimit){
+    public static final short defaultPort = 80;
+    public HttpTunnels newHttp(String hostName, OutputStream writer, int maxConsLimit){
 
         tunnel = new Tunnel(hostName,writer,maxConsLimit);
 
@@ -14,4 +17,14 @@ public class HttpTunnels {
         }
         return this;
     }
+    public String protocol(){
+        return "http";
+    }
+    public short publicServerPort(){
+        return defaultPort;
+    }
+    public void open(Socket listener){
+        tunnel.privateServer.start(tunnel);
+    }
+
 }

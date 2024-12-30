@@ -63,7 +63,7 @@ public class Event <EventType> {
             return null;
         }
     }
-    public boolean write(InputStream outputStream){
+    public boolean write(OutputStream outputStream){
         byte[] data = encode();
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(2);

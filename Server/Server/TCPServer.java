@@ -1,9 +1,9 @@
 package Server.Server;
 
 import Server.Events.Event;
-import Server.Events.TunnelOpened;
 import Server.Events.TunnelRequested;
 import Server.Jprq;
+import Server.Tunnels.Tunnel;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -25,15 +25,14 @@ public class TCPServer {
 
     public boolean init(int port, String title) {
         try {
-            ServerSocket serverSocket = new ServerSocket(port); // Create the ServerSocket
-            this.socket = serverSocket;
-            this.title = title; // Set the title
+
+            this.socket = new ServerSocket(port);
+            this.title = title;
             System.out.println("Server initialized with title: " + title + " on port: " + port);
-            return true; // Success
+            return true;
         } catch (IOException e) {
             System.err.println("Error initializing server: " + e.getMessage());
-            e.printStackTrace();
-            return false; // Failure
+            return false;
         }
     }
     public boolean initTLS(int port, String title, String certFile, String keyFile, String password) {
@@ -67,26 +66,26 @@ public class TCPServer {
             return false;
         }
     }
-    public boolean startEventCon(Jprq jprq) {
+    public void startEventCon(Jprq jprq) {
         try {
             listener = socket.accept();
             InputStream in = listener.getInputStream();
             Event<TunnelRequested> event = new Event<TunnelRequested>();
             if(!event.read(in)){
                 System.err.println("Error reading event: " + event.toString());
-                return false;
+                return;
             }
             TunnelRequested requested = event.getData();
             if(!requested.getProtocol().equals(Event.HTTP)){
                 System.out.println("protocol not supported " + requested.toString());
-                return false;
+                return;
             }
             if(requested.getSubDomain().isEmpty() || requested.getSubDomain().isBlank()){
                 requested.setSubDomain("sample");
             }
             if(validateSubDomain(requested.getSubDomain())){
                 System.out.println("Invalid  subdomain");
-                return false;
+                return;
 
             }
             String hostName = jprq.config.domainName+requested.getSubDomain();
@@ -95,9 +94,15 @@ public class TCPServer {
         }catch (Exception e) {
             System.err.println("Error initializing TLS server: " + e.getMessage());
             e.printStackTrace();
-            return false;
         }
-        return true;
+    }
+    public void startPublicCon(Jprq jprq){
+        try{
+            listener = socket.accept();
+        } catch (IOException e) {
+            System.out.println("Error ocuured when trying to open socket publicCon");
+            return;
+        }
     }
     public void close() throws IOException {
         this.listener.close();
@@ -127,4 +132,12 @@ public class TCPServer {
     }
 
 
+    public void start(Tunnel tunnel) {
+        try {
+            listener = socket.accept();
+        } catch (IOException e) {
+            System.out.println("unable to open connection for private Con");
+        }
+        tunnel.privateConnectionHandler(listener);
+    }
 }

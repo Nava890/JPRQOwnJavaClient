@@ -26,6 +26,7 @@ public class Jprq{
         this.activeTunnels = new HashMap<>();
         this.eventServer = new TCPServer();
         this.publicServer = new TCPServer();
+        this.publicServerTLS = new TCPServer();
         this.privateServer = new TCPServer();
 
         boolean temp = this.eventServer.init(config.eventServerPort,"jprq_event_server");
@@ -44,5 +45,9 @@ public class Jprq{
             return;
         }
     }
-
+    public void start(){
+        this.eventServer.startEventCon(this);
+        this.publicServer.startPublicCon(this);
+        this.publicServerTLS.startPublicCon(this);
+    }
 }

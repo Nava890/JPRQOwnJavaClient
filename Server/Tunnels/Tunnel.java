@@ -6,8 +6,12 @@ import Server.Server.TCPServer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -15,12 +19,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Tunnel implements TunnelInterface{
     public String hostName;
     public int maxConLimit;
-    public InputStream eventWriter;
+    public OutputStream eventWriter;
     public static final ReentrantLock eventWriterMx = new ReentrantLock();;
     public TCPServer privateServer;
     public Map<Short, Socket> publicCons;
     public Map<Short, byte[]> initialBuffer;
-    Tunnel (String hostName,InputStream eventWriter, int maxConLimit) {
+    Tunnel (String hostName,OutputStream eventWriter, int maxConLimit) {
         this.hostName = hostName;
         this.maxConLimit = maxConLimit;
         this.eventWriter = eventWriter;
@@ -104,6 +108,76 @@ public class Tunnel implements TunnelInterface{
             publicCon.close();
         } catch (IOException e) {
             System.out.println("Error closing Tunnel");
+        }
+    }
+    public void privateConnectionHandler(Socket listener){
+        byte[] buffer = new byte[2];
+
+        try {
+            InputStream inputStream = listener.getInputStream();
+            int read = inputStream.read(buffer);
+        } catch (IOException e) {
+            System.out.println("Unable to read the port from the client");
+            return;
+        }
+        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        short port = byteBuffer.getShort();
+        if(!publicCons.containsKey(port)){
+            System.out.println("public connection is not found. cannot pair");
+            return;
+        }
+        Socket publicCon = publicCons.get(port);
+        publicCons.remove(port);
+        if (initialBuffer.get(port).length>0){
+            try {
+                OutputStream outputbuffer = listener.getOutputStream();
+                outputbuffer.write(initialBuffer.get(port));
+            } catch (IOException e) {
+                System.out.println("unable to write the port to output buffer");
+            }
+        }
+        try {
+            bind(listener, publicCon);
+            bind(publicCon, listener);
+        } catch (IOException e) {
+            System.out.println("Error while binding public con and private con");
+            return;
+        }
+
+    }
+    public static void bind(Socket src, Socket dst) throws IOException {
+        try (src; dst; InputStream srcIn = src.getInputStream();
+             OutputStream dstOut = dst.getOutputStream()) {
+
+            byte[] buf = new byte[4096];
+            while (true) {
+                int bytesRead;
+                try {
+                    src.setSoTimeout(1000);
+                    bytesRead = srcIn.read(buf);
+                    if (bytesRead == -1) {
+                        break;
+                    }
+                } catch (IOException e) {
+                    break;
+                }
+
+
+                try {
+                    dst.setSoTimeout(1000);
+                    dstOut.write(buf, 0, bytesRead);
+                } catch (IOException e) {
+                    throw new IOException("Error writing to destination socket", e);
+                }
+
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // Restore interrupt flag
+                    throw new IOException("Thread interrupted", e);
+                }
+            }
         }
     }
 }

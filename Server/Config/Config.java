@@ -10,19 +10,24 @@ public class Config{
     public String tLSCertFile;
     public String tLSKeyFile;
 
-    public void load(Config config) throws Exception {
-        config.maxTunnelPerUser = 4;
-        config.maxConsPerTunnel = 24;
-        config.eventServerPort = 4321;
-        config.publicServerPort = 80;
-        config.publicServerTLSPort =443;
-        config.domainName = "JPRQ_DOMAIN";
-        config.tLSKeyFile = "JPRQ_TLS_KEY";
-        config.tLSCertFile = "JPRQ_TLS_CERT";
+    public boolean load(){
+        this.maxTunnelPerUser = 4;
+        this.maxConsPerTunnel = 24;
+        this.eventServerPort = 4321;
+        this.publicServerPort = 80;
+        this.publicServerTLSPort =443;
+        this.domainName = "JPRQ_DOMAIN";
+        this.tLSKeyFile = "JPRQ_TLS_KEY";
+        this.tLSCertFile = "JPRQ_TLS_CERT";
 
-        if (config.domainName =="")
-            throw new Exception("Domain not found");
-        if (config.tLSKeyFile == "" || config.tLSCertFile == "")
-		    throw new Exception("TLS key/cert file is missing");
+        if (this.domainName =="") {
+            System.out.println("Domain not found");
+            return false;
+        }
+        if (this.tLSKeyFile == "" || this.tLSCertFile == ""){
+            System.out.println("TLS key/cert file is missing");
+            return false;
+        }
+        return true;
     }
 }
