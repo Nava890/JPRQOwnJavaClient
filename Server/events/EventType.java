@@ -1,4 +1,4 @@
-package Server.Events;
+package events;
 
 public interface EventType {
 }
