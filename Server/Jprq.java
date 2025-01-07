@@ -1,9 +1,9 @@
-package JPRQOwnJavaClient.Server;
+package Server;
 
+import Server.server.TCPServer;
 import config.Config;
-import server.TCPServer;
-import tunnels.HttpTunnels;
-import tunnels.Tunnel;
+import Server.tunnels.HttpTunnels;
+import Server.tunnels.Tunnel;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,8 +1,9 @@
-package tunnels;
+package Server.tunnels;
 
+import Server.server.TCPServer;
 import events.ConnectionReceived;
 import events.Event;
-import server.TCPServer;
+import Server.tunnels.TunnelInterface;
 
 import java.io.IOException;
 import java.io.InputStream;

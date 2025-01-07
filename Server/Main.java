@@ -1,3 +1,5 @@
+package Server;
+
 import config.Config;
 
 import java.io.*;
@@ -15,10 +17,9 @@ class Main {
     jprq.init(config);
     Thread taskThread = new Thread(() -> {
       try {
-        jprq.start();
         while (!Thread.currentThread().isInterrupted()) {
-          // Simulate doing some work
           try {
+            jprq.start();
             Thread.sleep(1000); // Simulate work
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // Handle the interruption

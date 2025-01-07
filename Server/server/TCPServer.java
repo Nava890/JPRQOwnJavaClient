@@ -1,10 +1,9 @@
-package server;
+package Server.server;
 
 import events.Event;
 import events.TunnelRequested;
-import Jprq;
-import tunnels.Tunnel;
-
+import Server.tunnels.Tunnel;
+import Server.Jprq;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -101,14 +100,23 @@ public class TCPServer {
   }
 
   public void startPublicCon(Jprq jprq) {
-    while (true) {
-      try {
-        listener = socket.accept();
-      } catch (IOException e) {
-        System.out.println("Error ocuured when trying to open socket publicCon");
-        return;
-      }
-    }
+      Thread thread = new Thread(()->{
+          while (true) {
+              try {
+                  String hostName = socket.getInetAddress().getHostName();
+                  if(hostName==null){
+                      System.err.println("Invalid request");
+                      return;
+                  }
+                  System.out.println("Connected to host: " + hostName);
+                  listener = socket.accept();
+              } catch (IOException e) {
+                  System.out.println("Error ocuured when trying to open socket publicCon");
+                  return;
+              }
+          }
+      })
+
   }
 
   public void close() throws IOException {
